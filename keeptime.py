@@ -5,8 +5,8 @@ import argparse
 import datetime
 import time
 import ephem
+import timezonefinder
 import pytz
-from tzwhere import tzwhere
 import gps
 import math
 import curses
@@ -14,9 +14,9 @@ import curses
 format = "%H:%M:%S"
 date_format = "%a, %b %d, %Y"
 
-def find_timezone(lat, long):
-    w = tzwhere.tzwhere()
-    tzname = w.tzNameAt(lat, long)
+def find_timezone(latitude, longitude):
+    tf = timezonefinder.TimezoneFinder()
+    tzname = tf.timezone_at(lat=latitude, lng=longitude)
     return tzname
 
 def find_location():
@@ -35,7 +35,7 @@ def do_curses(screen):
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK);
     curses.curs_set(0) 
     (lat,lon) = find_location()
-    print "loading timezone data"
+    print("loading timezone data")
     tzname = find_timezone(lat, lon)
     screen.erase()
     screen.addstr(1,1,"GPS Sidereal Clock",curses.color_pair(1))
@@ -91,7 +91,7 @@ def run_curses():
 
 def run_plaintext():
     (lat,lon) = find_location()
-    print "Lat: ", lat, "Lon: ", lon
+    print("Lat: ", lat, "Lon: ", lon)
     latitude = math.radians(lat)
     longitude = math.radians(lon)
 
@@ -101,7 +101,7 @@ def run_plaintext():
     obs.lat = latitude
     obs.lon = longitude
 
-    print obs.lat, obs.lon
+    print(obs.lat, obs.lon)
 
     last_second = 0
 
@@ -116,9 +116,9 @@ def run_plaintext():
             parts = s_time.split(':')
             s_time = datetime.time(int(parts[0]),int(parts[1]),int(parts[2]))
 
-            print "Local:", l_time.time().strftime(format), \
-                "UTC:", u_time.time().strftime(format), \
-                "Sidereal: ", s_time.strftime(format)
+            print("Local:", l_time.time().strftime(format),
+                "UTC:", u_time.time().strftime(format),
+                "Sidereal: ", s_time.strftime(format))
         time.sleep(0.1)
 
 def main(argv):
@@ -127,13 +127,13 @@ def main(argv):
     parser.add_argument("-c", "--curses", action="store_true", help="Run clock in curses mode")
     args = parser.parse_args()
     if args.curses:
-        print args.curses, "Run in curses mode"
+        print(args.curses, "Run in curses mode")
         run_curses()
     elif args.dumb:
-        print args.dumb, "Run in dumb mode"
+        print(args.dumb, "Run in dumb mode")
         run_plaintext()
     else:
-        print "Don't know mode to use"
+        print("Don't know mode to use -c for curses, -d for dumb")
         return 2
 
 if __name__ == "__main__":
